@@ -42,7 +42,7 @@ This Terraform deployment consists of two parts; deploying the core OpenCTI Plat
 Design decisions for each deployment are covered within the respective folder's `README`.
 
 ## OpenCTI URLs
-- [OpenCTI Page](https://www.opencti.io/)
+- [OpenCTI Website](https://www.filigran.io/en/products/opencti/)
 - [OpenCTI Demo](https://demo.opencti.io/)
 - [OpenCTI GitHub](https://github.com/OpenCTI-Platform/opencti)
 - [OpenCTI Slack](https://slack.luatix.org/)
