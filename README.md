@@ -8,7 +8,7 @@ A Terraform deployment of OpenCTI designed to make use of native AWS Resources (
 
 
 > **Note**
-> This deployment is designed to help with OpenCTI Platform adoption. QinetiQ does not offer warranty on usage of this deployment. It is highly recommended to understand AWS, Terraform and Docker and if used within a production environment, perform an analysis of the deployment's security.
+> This deployment is designed to help with OpenCTI Platform adoption. QinetiQ does not offer warranty on usage of this deployment. It is highly recommended to understand AWS, Terraform and Docker and if used within a production environment, perform an analysis of the deployment's security. This includes ensuring in production, that the state file is securely stored in S3 with a restrictive Bucket Policy. If storing credentials in the Terraform state file (in a locked down S3 Bucket) does not meet policy requirements, look into Terraform Environment variables to pass manually stored credentials or use AWS Secrets Manager that can be referenced in Terraform.
 
 ## Requirements
 This deployment requires
