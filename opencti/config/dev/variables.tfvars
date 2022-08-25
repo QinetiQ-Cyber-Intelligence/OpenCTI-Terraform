@@ -58,7 +58,7 @@ opensearch_ebs_volume_size       = 15
 opensearch_field_data_heap_usage = "40" # Must be a string
 opensearch_auto_tune = {
   start_time = "cron(0 7 ? * 7 *)"
-  length     = "2h"
+  length     = "6h"
 }
 
 #####################
