@@ -104,7 +104,7 @@ network_load_balancer_ips = [
 ############################
 
 # -- OpenCTI -- #
-opencti_version                      = "rolling" # or 5.3.8 and greater
+opencti_version                      = "5.3.8"
 public_opencti_access_logs_s3_prefix = "opencti-access-logs"
 # -- OpenCTI Platform -- #
 opencti_platform_port                  = 4000

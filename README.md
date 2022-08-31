@@ -15,8 +15,8 @@ This deployment requires
 - Terraform AWS Provider Version `>= 4.25.0`
   - This is to make use of AWS EBS GP3 volumes, an important requirement to OpenCTI Platform performance.
 - Terraform Version `>= 1.1.0`
-- OpenCTI Platform Version `>= 5.3.8/ROLLING`
-  - This deployment uses IAM Roles and AWS S3 Gateway Endpoint which requires the recent `aws-sdk` implementation that has been merged. Hence, `ROLLING` can be used temporarily.
+- OpenCTI Platform Version `>= 5.3.8`
+  - This deployment uses IAM Roles and AWS S3 Gateway Endpoint which requires the recent `aws-sdk` implementation that has been merged.
 
 
 ## Key Features

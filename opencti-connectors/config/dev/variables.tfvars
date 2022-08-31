@@ -14,7 +14,7 @@ log_retention   = "1"
 # -- OpenCTI Deployment -- #
 ############################
 # -- OpenCTI -- #
-opencti_version           = "5.3.7"
+opencti_version           = "5.3.8"
 opencti_connector_kms_arn = "" # Use the outputted KMS information from the Core OpenCTI deployment.
 opencti_platform_url      = "" # Use the outputted Internal Load Balancer information from the Core OpenCTI deployment.
 opencti_platform_port     = 4000
