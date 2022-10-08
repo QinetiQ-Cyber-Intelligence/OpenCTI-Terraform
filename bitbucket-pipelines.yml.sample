@@ -1,0 +1,55 @@
+definitions:
+  steps:
+    - step: &terraform_dev
+        name: Run Terraform for OpenCTI-Dev
+        script:
+          # Note: This is not a complete YAML, as at the time of this writing we
+          # opted to use a custom Docker image for deployment. Writing the prerequites is up to you,
+          # You will need to write your code for authenticating with AWS, installing the awscli and terraform
+          # YOUR CODE HERE
+          #################################################################
+          # Un-comment if deploying for the first time, otherwise comment #
+          # Create the tfstate bucket                                     #
+          #################################################################
+          - aws s3api create-bucket --bucket <Prefix_Here_See_variables.tfvars>-terraform-state-${BITBUCKET_BRANCH} --region us-east-1
+          - aws s3api put-public-access-block --bucket <Prefix_Here_See_variables.tfvars>-terraform-state-${BITBUCKET_BRANCH} --region us-east-1 --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
+          - aws s3api put-bucket-encryption --bucket <Prefix_Here_See_variables.tfvars>-terraform-state-${BITBUCKET_BRANCH} --server-side-encryption-configuration={\"Rules\":[{\"ApplyServerSideEncryptionByDefault\":{\"SSEAlgorithm\":\"AES256\"}}]}
+          - aws s3api put-bucket-versioning --bucket <Prefix_Here_See_variables.tfvars>-terraform-state-${BITBUCKET_BRANCH} --versioning-configuration Status=Enabled
+          ###############################
+          # Deploy the OpenCTI platform #
+          ###############################
+          - cd $BITBUCKET_CLONE_DIR/OpenCTI-Terraform/opencti
+          # Un-comment if you plan to use OpenID for auth
+          # Replace OIDC_CLIENT_SECRET with the secret value
+          #- OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET_DEV}
+          #- sed -i "s/OIDC_CLIENT_SECRET/$OIDC_CLIENT_SECRET/g" ./config/${BITBUCKET_BRANCH}/variables.tfvars
+          - terraform init --backend-config=./config/${BITBUCKET_BRANCH}/backend.conf
+          # For debugging purposes
+          #- export TF_LOG="TRACE"
+          - terraform apply -auto-approve -var-file=./config/${BITBUCKET_BRANCH}/variables.tfvars
+          #######################################
+          #      Deploy OpenCTI connectors      #
+          # Un-comment after deploying platform #
+          # and configuring variables.tfvars    #
+          #######################################
+          #- cd $BITBUCKET_CLONE_DIR/OpenCTI-Terraform/opencti-connectors
+          # Secrets for each connector are stored as secured custom Bitbucket variables in json format
+          # Output each custom variable to a template file which is used by Terraform
+          #- echo ${EXAMPLE_CONNECTOR_SECRET_DEV} > ./config/${BITBUCKET_BRANCH}/connectors/example_connector/secrets.hcl
+          - terraform init --backend-config=./config/${BITBUCKET_BRANCH}/backend.conf
+          # For debugging purposes
+          #- export TF_LOG="TRACE"
+          - terraform apply -auto-approve -var-file=./config/${BITBUCKET_BRANCH}/variables.tfvars
+
+image:
+  name: YOUR_IMAGE_HERE
+  aws:
+    access-key: $ECR_ACCESS_KEY_ID
+    secret-key: $ECR_SECRET_ACCESS_KEY
+pipelines:
+  custom:
+    terraform_dev:
+      - step: *terraform_dev
+  branches:
+    dev:
+      - step: *terraform_dev

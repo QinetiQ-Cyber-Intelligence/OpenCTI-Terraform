@@ -1,0 +1,82 @@
+[
+    {
+      "name" : "OPENCTI_URL",
+      "value" : "${OPENCTI_PLATFORM_URL}"
+    },
+    {
+      "name" : "CONNECTOR_ID",
+      "value" : "${RANDOM_UUID}"
+    },
+    {
+      "name" : "CONNECTOR_TYPE",
+      "value" : "EXTERNAL_IMPORT"
+    },
+    {
+      "name" : "CONNECTOR_NAME",
+      "value" : "SentinelOne Threats"
+    },
+    {
+      "name" : "CONNECTOR_SCOPE",
+      "value" : "sentinelone-threats"
+    },
+    {
+      "name" : "CONNECTOR_AUTO",
+      "value" : "true"
+    },
+    {
+      "name" : "CONNECTOR_UPDATE_EXISTING_DATA",
+      "value" : "true"
+    },
+    {
+      "name" : "CONNECTOR_LOG_LEVEL",
+      "value" : "info"
+    },
+    {
+      "name" : "CONNECTOR_CONFIDENCE_LEVEL",
+      "value" : "50"
+    },
+    {
+      "name" : "SENTINELONE_THREATS_COOLDOWN_SECONDS",
+      "value" : "600"
+    },
+    {
+      "name" : "SENTINELONE_THREATS_SKIP_FALSE_POSITIVES",
+      "value" : "false"
+    },
+    {
+      "name" : "SENTINELONE_THREATS_SKIP_SUSPICIOUS",
+      "value" : "false"
+    },
+    {
+      "name" : "SENTINELONE_THREATS_SKIP_PUA",
+      "value" : "false"
+    },
+    {
+      "name" : "SENTINELONE_THREATS_INCLUDE_FILE_EXTENSIONS",
+      "value" : ""
+    },
+    {
+      "name" : "SENTINELONE_THREATS_FILE_EXTENSION_LABEL",
+      "value" : "true"
+    },
+    {
+      "name" : "SENTINELONE_THREATS_FILE_EXTENSION_LABEL_COLOR",
+      "value" : "#54483b"
+    },
+    {
+      "name" : "SENTINELONE_THREATS_CLASSIFICATION_LABEL",
+      "value" : "true"
+    },
+    {
+      "name" : "SENTINELONE_THREATS_CLASSIFICATION_LABEL_COLOR",
+      "value" : "#0059f7"
+    },
+    {
+      "name" : "SENTINELONE_THREATS_LABELS",
+      "value" : "sentinel-one,example-label"
+    },
+    {
+      "name" : "SENTINELONE_THREATS_LABELS_COLOR",
+      "value" : "#00cc66"
+    }
+]

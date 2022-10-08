@@ -1,0 +1,38 @@
+[
+    {
+      "name" : "OPENCTI_URL",
+      "value" : "${OPENCTI_PLATFORM_URL}"
+    },
+    {
+      "name" : "CONNECTOR_ID",
+      "value" : "${RANDOM_UUID}"
+    },
+    {
+      "name" : "CONNECTOR_TYPE",
+      "value" : "INTERNAL_IMPORT_FILE"
+    },
+    {
+      "name" : "CONNECTOR_NAME",
+      "value" : "ImportFileStix"
+    },
+    {
+      "name" : "CONNECTOR_AUTO",
+      "value" : "true"
+    },
+    {
+      "name" : "CONNECTOR_SCOPE",
+      "value" : "application/json,text/xml"
+    },
+    {
+      "name" : "CONNECTOR_VALIDATE_BEFORE_IMPORT",
+      "value" : "true"
+    },
+    {
+      "name" : "CONNECTOR_LOG_LEVEL",
+      "value" : "info"
+    },
+    {
+      "name" : "CONNECTOR_CONFIDENCE_LEVEL",
+      "value" : "15"
+    }
+]
