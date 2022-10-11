@@ -7,13 +7,7 @@ variable "resource_prefix" {
 }
 
 variable "tags" {
-  type = object({
-    ProjectOwner = string
-    Customer     = string
-    Project      = string
-    Environment  = string
-    Terraform    = bool
-  })
+  type        = map(string)
   description = "The set of tags required for AWS resources."
 }
 
@@ -22,15 +16,43 @@ variable "domain" {
   description = "The name of the R53 Domain to be used by the ALB."
 }
 
+variable "environment" {
+  type        = string
+  description = "The environment is prepended to the domain."
+}
+
+variable "subdomain" {
+  type        = string
+  description = "The subdomain is prepended to the environment."
+}
+
+variable "ssl_policy" {
+  type        = string
+  description = "The SSL policy to use for the Public Load Balancer (optional, only used if domain is specified)"
+}
+
+variable "cidr_blocks_public_lb_ingress" {
+  type        = list(string)
+  description = "Cidr blocks whitelisted for inbound access to public load balancer"
+}
+
+variable "cidr_blocks_bypass_auth" {
+  type        = list(string)
+  description = "List of cidr blocks which are allowed to bypass oidc authentication (if configured)"
+}
+
 variable "oidc_information" {
   type = object({
-    authorization_endpoint = string,
-    client_id              = string,
-    client_secret          = string,
-    issuer                 = string,
-    token_endpoint         = string,
-    user_info_endpoint     = string,
-    redirect_uris          = string
+    client_id              = string
+    client_secret          = string
+    issuer                 = string
+    authorization_endpoint = string
+    token_endpoint         = string
+    user_info_endpoint     = string
+    redirect_uris          = list(string)
+    session_timeout        = number
+    scope                  = string
+    on_unauthenticated_request = string
   })
   description = "The OIDC Authentication information used by OpenCTI Platform and the ALB."
   sensitive   = true
@@ -39,11 +61,6 @@ variable "oidc_information" {
 variable "secrets_manager_recovery_window" {
   type        = number
   description = "The number of days that a Secret in Secrets Manager can be recovered post deletion."
-}
-
-variable "opencti_connector_names" {
-  type        = list(string)
-  description = "A list of Connectors that require a Secrets Manager Secret to be deployed to store OpenCTI Tokens."
 }
 
 variable "log_retention" {
@@ -59,11 +76,6 @@ variable "aws_account_id_lb_logs" {
 variable "public_opencti_access_logs_s3_prefix" {
   type        = string
   description = "The Prefix assigned to the S3 Bucket for public ALB Access Logs."
-}
-
-variable "opencti_kms_key_admin" {
-  type        = string
-  description = "The allowed IAM Entity that can perform administrative tasks on the KMS Key. Root account is allowed."
 }
 
 variable "enable_ecs_exec" {
@@ -121,11 +133,14 @@ variable "opencti_platform_memory_size" {
 
 variable "opencti_openid_mapping_config" {
   type = object({
-    chosen_token           = string
-    oidc_group_claim_path  = string,
-    requested_scopes       = string
-    opencti_roles_mapping  = string,
-    opencti_groups_mapping = string,
+    groups_token   = string,
+    groups_scope   = string,
+    groups_path    = list(string),
+    groups_mapping = list(string),
+    roles_token    = string,
+    roles_scope    = string,
+    roles_path     = list(string),
+    roles_mapping  = list(string)
   })
   description = "The RBAC mapping information for OpenCTI Platform to use."
 }
@@ -332,4 +347,9 @@ variable "vpc_cidr" {
 variable "network_load_balancer_ips" {
   type        = list(string)
   description = "A list of static IP addresses to be used by the NLB."
+}
+
+variable "enable_jump_box" {
+  type        = bool
+  description = "Whether or not to provision a jump box."
 }

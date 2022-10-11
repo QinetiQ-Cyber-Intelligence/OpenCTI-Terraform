@@ -16,11 +16,6 @@ variable "ecs_cluster" {
   description = "The ARN Value of the AWS ECS Cluster for OpenCTI."
 }
 
-variable "kms_key_arn" {
-  type        = string
-  description = "The ARN of the KMS Key used for encryption."
-}
-
 variable "private_subnet_ids" {
   type        = list(string)
   description = "The list of private Subnet IDs that Fargate resources can be deployed to."

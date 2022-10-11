@@ -79,7 +79,6 @@ resource "aws_ecs_task_definition" "this" {
 resource "aws_cloudwatch_log_group" "this" {
   name              = "${var.resource_prefix}/ecs/rabbitmq"
   retention_in_days = var.log_retention
-  kms_key_id        = var.kms_key_arn
 }
 
 
@@ -90,7 +89,6 @@ resource "aws_efs_file_system" "this" {
   creation_token   = "${var.resource_prefix}-rabbitmq-efs"
   performance_mode = "maxIO"
   encrypted        = true
-  kms_key_id       = var.kms_key_arn
 }
 
 resource "aws_efs_backup_policy" "this" {
@@ -124,10 +122,9 @@ resource "aws_security_group" "inbound_efs" {
 # -- RabbitMQ Credentials -- #
 ##############################
 resource "aws_secretsmanager_secret" "this" {
-  name                    = "${var.resource_prefix}-infrastructure-rabbitmq-credentials"
+  name                    = "${var.resource_prefix}-platform-rabbitmq-credentials"
   description             = "RabbitMQ username and password for OpenCTI node access."
   recovery_window_in_days = var.secrets_manager_recovery_window
-  kms_key_id              = var.kms_key_arn
 }
 
 resource "random_password" "this" {
@@ -169,15 +166,6 @@ resource "aws_iam_policy" "rabbitmq_execution" {
         Action   = ["logs:CreateLogStream", "logs:PutLogEvents", "logs:CreateLogGroup"]
         Effect   = "Allow"
         Resource = ["${aws_cloudwatch_log_group.this.arn}:*"]
-      },
-      {
-        Action = [
-          "kms:Decrypt"
-        ]
-        Effect = "Allow"
-        Resource = [
-          "${var.kms_key_arn}"
-        ]
       },
       {
         Action = [
@@ -319,7 +307,6 @@ resource "aws_lambda_function" "this" {
   role             = aws_iam_role.lambda.arn
   timeout          = 900
   architectures    = ["arm64"]
-  kms_key_arn      = var.kms_key_arn
   #checkov:skip=CKV_AWS_115:Concurrency Limits are not required for this Lambda function.
   #checkov:skip=CKV_AWS_116:Dead Letter Queues are not required for this Lambda function.
   vpc_config {
@@ -430,14 +417,6 @@ data "aws_iam_policy_document" "lambda" {
     ]
     resources = [
       "${aws_secretsmanager_secret.this.arn}"
-    ]
-  }
-  statement {
-    actions = [
-      "kms:Decrypt"
-    ]
-    resources = [
-      "${var.kms_key_arn}"
     ]
   }
   statement {

@@ -3,9 +3,6 @@
 ####################################
 data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
-data "aws_secretsmanager_secret" "this" {
-  name = "${var.resource_prefix}-connector-${var.container_name}"
-}
 resource "random_uuid" "this" {}
 
 # Defining the Container Image and Container role
@@ -32,13 +29,14 @@ resource "aws_ecs_task_definition" "opencti_connnector" {
           "awslogs-stream-prefix" : "${var.resource_prefix}"
         }
       },
-      "secrets" : [
+      "secrets" : module.secrets.secrets_list,
+      "environment" : jsondecode(templatefile(
+        var.environment_variable_template,
         {
-          "name" : "OPENCTI_TOKEN",
-          "valueFrom" : "${data.aws_secretsmanager_secret.this.arn}:apikey::"
+          OPENCTI_PLATFORM_URL = var.opencti_platform_url,
+          RANDOM_UUID          = random_uuid.this.id
         }
-      ],
-      "environment" : var.environment_variable_def
+      ))
   }])
   runtime_platform {
     operating_system_family = "LINUX"
@@ -49,7 +47,6 @@ resource "aws_ecs_task_definition" "opencti_connnector" {
 resource "aws_cloudwatch_log_group" "this" {
   name              = "${var.resource_prefix}/ecs/opencti-${var.container_name}"
   retention_in_days = var.log_retention
-  kms_key_id        = var.opencti_connector_kms_arn
 }
 
 ######################################
@@ -81,16 +78,7 @@ resource "aws_iam_policy" "this" {
         ]
         Effect = "Allow"
         Resource = [
-          "arn:aws:secretsmanager:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:secret:${var.resource_prefix}-connector-${var.container_name}*"
-        ]
-      },
-      {
-        Action = [
-          "kms:Decrypt"
-        ]
-        Effect = "Allow"
-        Resource = [
-          "${var.opencti_connector_kms_arn}"
+          "arn:aws:secretsmanager:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:secret:${var.resource_prefix}-${var.container_name}-connector*"
         ]
       }
     ]
@@ -115,11 +103,73 @@ resource "aws_ecs_service" "this" {
   name                 = "${var.resource_prefix}-${var.container_name}-service"
   cluster              = var.ecs_cluster
   task_definition      = aws_ecs_task_definition.opencti_connnector.arn
-  desired_count        = 1
+  desired_count        = var.ecs_task_count
   launch_type          = "FARGATE"
   force_new_deployment = true
   network_configuration {
     subnets         = var.private_subnet_ids
     security_groups = [var.connector_security_group_id]
+  }
+}
+
+###################################
+# --    Create User Account    -- # 
+###################################
+
+# Retrieve the existing master user credentials
+# These are used when creating the connector's user account
+data "aws_secretsmanager_secret" "master_creds" {
+  name = "${var.resource_prefix}-platform-opencti-master-user-credentials"
+}
+
+data "aws_secretsmanager_secret_version" "master_creds" {
+  secret_id = data.aws_secretsmanager_secret.master_creds.id
+}
+
+# Generate a random password for the connector's user account
+resource "random_password" "connector_account_password" {
+  length           = 16
+  special          = true
+}
+
+# Execute python script to create the connector's user account
+# Use the output API token as a replacement for the secret template file
+data "external" "create_account" {
+  program = ["python3", "${path.root}/resources/create_user_account.py"]
+  query = {
+    opencti_url    = var.opencti_url
+    admin_email    = jsondecode(data.aws_secretsmanager_secret_version.master_creds.secret_string).username
+    admin_password = jsondecode(data.aws_secretsmanager_secret_version.master_creds.secret_string).password
+    name           = var.container_name
+    email          = "${var.container_name}@${var.email_domain}"
+    password       = "${random_password.connector_account_password.result}"
+    first_name     = var.container_name
+    last_name      = var.container_name
+    description    = "User account for the connector \"${var.container_name}\"."
+  }
+}
+
+# Create the secrets and use output variable secrets_list in the task definition
+module "secrets" {
+  source      = "../../secrets-terraform-module"
+  secret_name = "${var.resource_prefix}-${var.container_name}-connector"
+  secrets_manager_recovery_window = var.secrets_manager_recovery_window
+  # If no secret template was provided, only created the OPENCTI_TOKEN secret,
+  # otherwise use the template provided.
+  secrets_map = (var.secrets_template == "") ? {"OPENCTI_TOKEN": data.external.create_account.result["api_token"]} : jsondecode(templatefile(
+    var.secrets_template,
+    {
+      OPENCTI_TOKEN = data.external.create_account.result["api_token"]
+    }
+  ))
+}
+
+# If secrets have changed, force a new deployment of the ECS service
+resource "null_resource" "force_deployment" {
+  triggers = {
+    version_id = module.secrets.version_id
+  }
+  provisioner "local-exec" {
+    command = "aws ecs update-service --cluster ${var.ecs_cluster} --service ${aws_ecs_service.this.name} --force-new-deployment --region ${data.aws_region.current.name}"
   }
 }

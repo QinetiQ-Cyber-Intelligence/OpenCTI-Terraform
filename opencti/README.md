@@ -18,13 +18,45 @@ This deployment, as it stands, will deploy the core OpenCTI Platform but there a
 > - AWS Lambda is deployed as a private resource in a VPC. This can lead to longer resource delete times (~27mins). This is expected.
 > - The OpenCTI Platform master user credentials can be found in AWS Secrets Manager post deployment.
 
+## Backend S3
+
+To store and use Terraforms state file remotely in S3, follow these steps:
+
+1. Create an S3 bucket using the AWS CLI:
+```
+aws s3api create-bucket --bucket my-bucket-dev --region us-east-1
+```
+2. Disable all public access to the S3 bucket:
+```
+aws s3api put-public-access-block -bucket my-bucket-dev --region us-east-1 -public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
+```
+  3. (Optional) Enable Server Side Encryption:
+```
+aws s3api put-bucket-encryption --bucket my-bucket-dev --region --us-east-1 server-side-encryption-configuration={\"Rules\":[{\"ApplyServerSideEncryptionByDefault\":{\"SSEAlgorithm\":\"AES256\"}}]}
+```
+4. (Optional) Enable Versioning:
+```
+aws s3api put-bucket-versioning --bucket my-bucket-dev --region us-east-1 --versioning-configuration Status=Enabled
+```
+5. Configure `OpenCTI-Terraform/opencti/config/backend.conf` and `OpenCTI-Terraform/opencti-connectors/config/backend.conf` with the bucket name.
+6. Un-comment the `backend` blocks in `OpenCTI-Terraform/opencti/versions.tf` and `OpenCTI-Terraform/opencti-connectors/versions.tf`.
+7. Run the following command:
+```
+terraform init --backend-config=./config/{YOUR_ENVIRONMENT}/backend.conf
+```
+
+> **Note**: If you deployed previously, run this command instead to migrade your state:
+```
+terraform init -migrate-state --backend-config=./config/{YOUR_ENVIRONMENT}/backend.conf
+```
+
+8. Deploy:
+```
+terraform apply -var-file=./config/{YOUR_ENVIRONMENT}/variables.tfvars
+```
 
 ### Route 53 Integration
-Terraform code exists within this deployment (`load_balancing module`) that will make use of an existing Route53 Hosted Zone. The Route53 Hosted Zone value is configured by the `domain` Terraform variable in `variables.tfvars`. This will create a sub-domain of `https://opencti.domain`.
-
-To enable this Terraform code, the following adjustments need to be made:
-- In the `load_balancing` module, lines `47 - 48` are to be uncommented and lines `27 - 28 and 45 - 46` should be adjusted to the suggested values.
-- Lines `91 - 130` should be uncommented.
+Terraform code exists within this deployment (`load_balancing module`) that will make use of an existing Route53 Hosted Zone. The Route53 Hosted Zone value is configured by the variables: `domain`, `environment`, and `subdomain` in `variables.tfvars`. The OpenCTI platform will be available at `https://subdomain.environment.domain`.
 
 ### OpenID Connect Integration
 
@@ -34,8 +66,6 @@ This requires having an Identity Provider Application setup prior to testing thi
 
 To enable this, the following adjustments need to be made:
 - Configuration of the variables `opencti_openid_mapping_config` and `oidc_information`.
-- Lines `49 - 62` of the `load_balancing` module should be uncommented.
-- Lines `162 - 221` of the `ecs_opencti/opencti_platform` module should be uncommented and moved into the `environment` section of the ECS Task Definition.
 
 In the case of setting up OpenID Connect, OpenCTI documentation can be found [here](https://luatix.notion.site/Configuration-a568604c46d84f39a8beae141505572a#896e296f1efb46a985048914fbe29e45).
 

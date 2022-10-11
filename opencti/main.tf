@@ -46,7 +46,6 @@ resource "aws_vpc_endpoint" "this" {
 #   source          = "./modules/vpc_flow_logging"
 #   resource_prefix = var.resource_prefix
 #   vpc_id          = aws_vpc.this.id
-#   kms_key_arn     = module.kms.kms_key_arn
 #   log_retention   = var.log_retention
 # }
 
@@ -87,6 +86,7 @@ module "az_c_networking" {
 }
 
 module "jump_box" {
+  count           = var.enable_jump_box ? 1 : 0 
   source          = "./modules/ssm_jump"
   vpc_id          = aws_vpc.this.id
   resource_prefix = var.resource_prefix
@@ -102,7 +102,10 @@ module "load_balancing" {
   # -- General -- #
   resource_prefix = var.resource_prefix
   vpc_id          = aws_vpc.this.id
+  environment     = var.environment
   domain          = var.domain
+  subdomain       = var.subdomain
+  ssl_policy      = var.ssl_policy
   private_subnet_ids = [
     module.az_a_networking.private_subnet_id,
     module.az_b_networking.private_subnet_id,
@@ -125,6 +128,8 @@ module "load_balancing" {
   logging_s3_bucket                    = module.s3.logging_s3_bucket
   public_opencti_access_logs_s3_prefix = var.public_opencti_access_logs_s3_prefix
   oidc_information                     = var.oidc_information
+  cidr_blocks_public_lb_ingress        = var.cidr_blocks_public_lb_ingress
+  cidr_blocks_bypass_auth              = var.cidr_blocks_bypass_auth
 }
 
 #################################################
@@ -146,7 +151,6 @@ module "elasticache" {
     var.az_b_private_cidr,
     var.az_c_private_cidr
   ]
-  kms_key_arn = module.kms.kms_key_arn
   private_subnet_ids = [
     module.az_a_networking.private_subnet_id,
     module.az_b_networking.private_subnet_id,
@@ -161,8 +165,10 @@ module "elasticache" {
   elasticache_redis_snapshot_retention_limit = var.elasticache_redis_snapshot_retention_limit
   elasticache_redis_snapshot_time            = var.elasticache_redis_snapshot_time
   elasticache_redis_maintenance_period       = var.elasticache_redis_maintenance_period
-  accepted_security_group_ids = [
-    module.jump_box.jump_box_security_group,
+  accepted_security_group_ids = ((var.enable_jump_box)) ? [
+    module.opencti.opencti_platform_security_group,
+    module.jump_box.jump_box_security_group
+  ] : [
     module.opencti.opencti_platform_security_group
   ]
   # Ensure that the NLB IP Address is not taken
@@ -172,24 +178,17 @@ module "elasticache" {
 
 }
 
-module "kms" {
-  source                = "./modules/kms"
-  resource_prefix       = var.resource_prefix
-  opencti_kms_key_admin = var.opencti_kms_key_admin
-}
-
 module "s3" {
   source                               = "./modules/s3"
   resource_prefix                      = var.resource_prefix
   public_opencti_access_logs_s3_prefix = var.public_opencti_access_logs_s3_prefix
   aws_account_id_lb_logs               = var.aws_account_id_lb_logs
-  kms_key_arn                          = module.kms.kms_key_arn
 }
+
 module "opensearch" {
   source = "./modules/opensearch"
   # -- General -- #
   vpc_id      = aws_vpc.this.id
-  kms_key_arn = module.kms.kms_key_arn
   private_cidr_blocks = [
     var.az_a_private_cidr,
     var.az_b_private_cidr,
@@ -214,8 +213,10 @@ module "opensearch" {
   opensearch_field_data_heap_usage    = var.opensearch_field_data_heap_usage
   opensearch_auto_tune                = var.opensearch_auto_tune
   log_retention                       = var.log_retention
-  accepted_security_group_ids = [
-    module.jump_box.jump_box_security_group,
+  accepted_security_group_ids = ((var.enable_jump_box)) ? [
+    module.opencti.opencti_platform_security_group,
+    module.jump_box.jump_box_security_group
+  ] : [
     module.opencti.opencti_platform_security_group
   ]
   # Ensure that the NLB IP Address is not taken
@@ -237,7 +238,6 @@ module "opencti" {
     module.az_b_networking.private_subnet_id,
     module.az_c_networking.private_subnet_id
   ]
-  kms_key_arn                       = module.kms.kms_key_arn
   vpc_id                            = aws_vpc.this.id
   private_network_load_balancer_dns = module.load_balancing.private_network_load_balancer_dns
   private_cidr_blocks = [
@@ -302,26 +302,4 @@ module "opencti" {
     # Ensure that the NLB IP Address is not taken
     module.load_balancing.network_load_balancer_subnet_mapping
   ]
-}
-
-###############################################
-# -- OpenCTI Connector API Key Placeholder -- #
-###############################################
-# This is to create the required OpenCTI Connector Place holders for API Keys
-resource "aws_secretsmanager_secret" "connector_keys" {
-  for_each                = toset(var.opencti_connector_names)
-  name                    = "${var.resource_prefix}-connector-${each.value}"
-  description             = "Secret containing OpenCTI ${each.value} connector API Key."
-  recovery_window_in_days = var.secrets_manager_recovery_window
-  kms_key_id              = module.kms.kms_key_connector_arn
-}
-
-resource "aws_secretsmanager_secret_version" "connector_keys" {
-  for_each      = toset(var.opencti_connector_names)
-  secret_id     = aws_secretsmanager_secret.connector_keys[each.key].id
-  secret_string = <<EOF
-  {
-    "apikey": ""
-  }
-  EOF
 }

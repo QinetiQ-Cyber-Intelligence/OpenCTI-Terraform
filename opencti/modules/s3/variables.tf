@@ -15,8 +15,3 @@ variable "aws_account_id_lb_logs" {
   type        = string
   description = "The AWS-owned Account ID that is required to push access logs to the S3 Bucket."
 }
-
-variable "kms_key_arn" {
-  type        = string
-  description = "The ARN of the KMS Key used for encryption."
-}

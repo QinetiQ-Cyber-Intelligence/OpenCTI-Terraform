@@ -10,7 +10,6 @@ resource "aws_flow_log" "this" {
 
 resource "aws_cloudwatch_log_group" "this" {
   name              = "${var.resource_prefix}/vpc-flow-logs"
-  kms_key_id        = var.kms_key_arn
   retention_in_days = var.log_retention
 }
 

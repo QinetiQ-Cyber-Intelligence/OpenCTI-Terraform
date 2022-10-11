@@ -24,7 +24,6 @@ resource "aws_elasticache_replication_group" "this" {
   #checkov:skip=CKV_AWS_31:OpenCTI Platform does not support 'auth_token', instead username/password is used.
   transit_encryption_enabled = true
   at_rest_encryption_enabled = true
-  kms_key_id                 = var.kms_key_arn
   user_group_ids             = [aws_elasticache_user_group.this.id]
   snapshot_retention_limit   = var.elasticache_redis_snapshot_retention_limit
   snapshot_window            = var.elasticache_redis_snapshot_time
@@ -82,10 +81,9 @@ resource "aws_elasticache_user" "this" {
 }
 
 resource "aws_secretsmanager_secret" "this" {
-  name                    = "${var.resource_prefix}-infrastructure-elasticache-credentials"
+  name                    = "${var.resource_prefix}-platform-elasticache-credentials"
   description             = "Elasticache password for OpenCTI"
   recovery_window_in_days = var.secrets_manager_recovery_window
-  kms_key_id              = var.kms_key_arn
 }
 
 resource "random_password" "elasticache_password" {

@@ -32,11 +32,6 @@ variable "opencti_platform_url" {
   description = "The internal Load Balancer endpoint for OpenCTI Platform."
 }
 
-variable "opencti_connector_kms_arn" {
-  type        = string
-  description = "The ARN value of the KMS Key used to encrypt Connector API Key Secrets."
-}
-
 variable "log_retention" {
   type        = string
   description = "The number of days that CloudWatch Logs are retained for."

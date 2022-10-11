@@ -31,11 +31,6 @@ variable "private_network_load_balancer_dns" {
   description = "The Network Load Balancer private endpoint."
 }
 
-variable "kms_key_arn" {
-  type        = string
-  description = "The ARN of the KMS Key used for encryption."
-}
-
 variable "secrets_manager_recovery_window" {
   type        = number
   description = "The number of days that a Secret in Secrets Manager can be recovered post deletion."
@@ -121,13 +116,16 @@ variable "opencti_platform_memory_size" {
 
 variable "oidc_information" {
   type = object({
-    authorization_endpoint = string,
-    client_id              = string,
-    client_secret          = string,
-    issuer                 = string,
-    token_endpoint         = string,
-    user_info_endpoint     = string,
-    redirect_uris          = string
+    client_id              = string
+    client_secret          = string
+    issuer                 = string
+    authorization_endpoint = string
+    token_endpoint         = string
+    user_info_endpoint     = string
+    redirect_uris          = list(string)
+    session_timeout        = number
+    scope                  = string
+    on_unauthenticated_request = string
   })
   description = "The OIDC Authentication information used by OpenCTI Platform and the ALB."
   sensitive   = true
@@ -135,11 +133,14 @@ variable "oidc_information" {
 
 variable "opencti_openid_mapping_config" {
   type = object({
-    chosen_token           = string
-    oidc_group_claim_path  = string,
-    requested_scopes       = string
-    opencti_roles_mapping  = string,
-    opencti_groups_mapping = string,
+    groups_token   = string,
+    groups_scope   = string,
+    groups_path    = list(string),
+    groups_mapping = list(string),
+    roles_token    = string,
+    roles_scope    = string,
+    roles_path     = list(string),
+    roles_mapping  = list(string)
   })
   description = "The RBAC mapping information for OpenCTI Platform to use."
 }
