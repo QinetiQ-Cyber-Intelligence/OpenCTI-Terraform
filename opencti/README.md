@@ -10,6 +10,7 @@ A deployment of the OpenCTI Platform and its main dependencies into AWS across 3
 
 > **Note**
 > Review the `/config/dev/variables.tfvars` file for each deployment to ensure the OpenCTI Platform is configured as expected. This includes setting the correct regional values such as the `aws_account_id_lb_logs` defined on `Line 15` in `variables.tfvars`. Ensure that the `backend.conf` and `provider.tf` are both set to the correct AWS Region.
+> A sample Bitbucket pipeline configuration template has been provided at `bitbucket-pipelines.yml.sample`, in case you want to deploy via automation pipeline (this is  recommended, for both security and convienence purposes).
 
 ## Guidance
 This deployment, as it stands, will deploy the core OpenCTI Platform but there are additional components that can be added.
