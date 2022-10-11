@@ -11,7 +11,6 @@ resource "aws_ecs_cluster" "this" {
     # Can be updated to S3 bucket logging instead
     execute_command_configuration {
       logging    = "OVERRIDE"
-      kms_key_id = var.kms_key_arn
       log_configuration {
         cloud_watch_encryption_enabled = true
         cloud_watch_log_group_name     = aws_cloudwatch_log_group.this.name
@@ -27,7 +26,6 @@ resource "aws_ecs_cluster" "this" {
 # CloudWatch Cluster Logging
 resource "aws_cloudwatch_log_group" "this" {
   name              = "${var.resource_prefix}-cluster"
-  kms_key_id        = var.kms_key_arn
   retention_in_days = var.log_retention
 }
 
@@ -37,7 +35,6 @@ module "opencti_platform" {
   ecs_cluster                              = aws_ecs_cluster.this.id
   resource_prefix                          = var.resource_prefix
   private_subnet_ids                       = var.private_subnet_ids
-  kms_key_arn                              = var.kms_key_arn
   vpc_id                                   = var.vpc_id
   private_cidr_blocks                      = var.private_cidr_blocks
   public_cidr_blocks                       = var.public_cidr_blocks
@@ -85,7 +82,6 @@ module "opencti_worker" {
   ecs_cluster            = aws_ecs_cluster.this.id
   vpc_id                 = var.vpc_id
   resource_prefix        = var.resource_prefix
-  kms_key_arn            = var.kms_key_arn
   log_retention          = var.log_retention
   private_subnet_ids     = var.private_subnet_ids
   opencti_platform_token = module.opencti_platform.opencti_platform_token
@@ -108,7 +104,6 @@ module "rabbitmq" {
   ecs_cluster                                        = aws_ecs_cluster.this.id
   vpc_id                                             = var.vpc_id
   log_retention                                      = var.log_retention
-  kms_key_arn                                        = var.kms_key_arn
   private_subnet_ids                                 = var.private_subnet_ids
   private_cidr_blocks                                = var.private_cidr_blocks
   enable_ecs_exec                                    = var.enable_ecs_exec

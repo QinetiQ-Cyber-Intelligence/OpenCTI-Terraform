@@ -1,0 +1,78 @@
+[
+    {
+      "name" : "OPENCTI_URL",
+      "value" : "${OPENCTI_PLATFORM_URL}"
+    },
+    {
+      "name" : "CONNECTOR_ID",
+      "value" : "${RANDOM_UUID}"
+    },
+    {
+      "name" : "CONNECTOR_TYPE",
+      "value" : "INTERNAL_EXPORT_FILE"
+    },
+    {
+      "name" : "CONNECTOR_NAME",
+      "value" : "ExportReportPdf"
+    },
+    {
+      "name" : "CONNECTOR_SCOPE",
+      "value" : "application/pdf"
+    },
+    {
+      "name" : "CONNECTOR_AUTO",
+      "value" : "true"
+    },
+    {
+      "name" : "CONNECTOR_UPDATE_EXISTING_DATA",
+      "value" : "true"
+    },
+    {
+      "name" : "CONNECTOR_LOG_LEVEL",
+      "value" : "info"
+    },
+    {
+      "name" : "CONNECTOR_CONFIDENCE_LEVEL",
+      "value" : "100"
+    },
+    {
+      "name" : "EXPORT_REPORT_PDF_PRIMARY_COLOR",
+      "value" : "#00cc66"
+    },
+    {
+      "name" : "EXPORT_REPORT_PDF_SECONDARY_COLOR",
+      "value" : "#27373c"
+    },
+    {
+      "name" : "EXPORT_REPORT_PDF_COMPANY_ADDRESS_LINE_1",
+      "value" : "CompanyName"
+    },
+    {
+      "name" : "EXPORT_REPORT_PDF_COMPANY_ADDRESS_LINE_2",
+      "value" : "123 Main St, Suite 100"
+    },
+    {
+      "name" : "EXPORT_REPORT_PDF_COMPANY_ADDRESS_LINE_3",
+      "value" : "Denver, CO 80237 USA"
+    },
+    {
+      "name" : "EXPORT_REPORT_PDF_COMPANY_PHONE_NUMBER",
+      "value" : "888.888.8888"
+    },
+    {
+      "name" : "EXPORT_REPORT_PDF_COMPANY_EMAIL",
+      "value" : "example@company.com"
+    },
+    {
+      "name" : "EXPORT_REPORT_PDF_COMPANY_WEBSITE",
+      "value" : "https://www.example.com"
+    },
+    {
+      "name" : "EXPORT_REPORT_PDF_INDICATORS_ONLY",
+      "value" : "false"
+    },
+    {
+      "name" : "EXPORT_REPORT_PDF_DEFANG_URLS",
+      "value" : "true"
+    }
+]

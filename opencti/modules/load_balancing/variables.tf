@@ -62,21 +62,49 @@ variable "rabbitmq_node_port" {
 ###############
 # -- Other -- #
 ###############
+variable "environment" {
+  type        = string
+  description = "The environment is prepended to the domain."
+}
+
 variable "domain" {
   type        = string
   description = "The name of the R53 Domain to be used by the ALB."
 }
 
+variable "subdomain" {
+  type        = string
+  description = "The subdomain is prepended to the environment."
+}
+
+variable "ssl_policy" {
+  type        = string
+  description = "The SSL policy to use for public lb (if applicable)"
+}
+
 variable "oidc_information" {
   type = object({
-    authorization_endpoint = string,
-    client_id              = string,
-    client_secret          = string,
-    issuer                 = string,
-    token_endpoint         = string,
-    user_info_endpoint     = string,
-    redirect_uris          = string
+    client_id              = string
+    client_secret          = string
+    issuer                 = string
+    authorization_endpoint = string
+    token_endpoint         = string
+    user_info_endpoint     = string
+    redirect_uris          = list(string)
+    session_timeout        = number
+    scope                  = string
+    on_unauthenticated_request = string
   })
   description = "The OIDC Authentication information used by OpenCTI Platform and the ALB."
   sensitive   = true
+}
+
+variable "cidr_blocks_public_lb_ingress" {
+  type        = list(string)
+  description = "List of cidr blocks which are allowed ingress to public load balancer"
+}
+
+variable "cidr_blocks_bypass_auth" {
+  type        = list(string)
+  description = "List of cidr blocks which are allowed to bypass oidc authentication (if configured)"
 }

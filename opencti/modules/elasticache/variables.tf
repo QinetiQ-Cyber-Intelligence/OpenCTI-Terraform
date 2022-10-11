@@ -16,11 +16,6 @@ variable "private_subnet_ids" {
   description = "The list of private Subnet IDs that ElastiCache can be deployed to."
 }
 
-variable "kms_key_arn" {
-  type        = string
-  description = "The ARN of the KMS Key used for encryption."
-}
-
 variable "private_cidr_blocks" {
   type        = list(string)
   description = "The list of private CIDR ranges associated with the private Subnet IDs."

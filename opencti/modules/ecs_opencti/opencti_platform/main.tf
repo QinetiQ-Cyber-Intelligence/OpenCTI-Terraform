@@ -1,3 +1,36 @@
+locals {
+  environment_variables = jsondecode(templatefile(
+    (var.oidc_information.client_id == "") ? "./resources/container_env_definitions/opencti_platform.hcl" : "./resources/container_env_definitions/opencti_platform_oidc.hcl",
+    {
+      opencti_platform_port                   = tostring(var.opencti_platform_port)
+      opencti_platform_admin_email            = var.opencti_platform_admin_email
+      opencti_platform_memory_size            = tostring(var.opencti_platform_memory_size)
+      opencti_logging_level                   = var.opencti_logging_level
+      elasticache_endpoint_address            = var.elasticache_endpoint_address
+      elasticache_redis_port                  = var.elasticache_redis_port
+      redis_trimming                          = tostring(var.redis_trimming)
+      opensearch_endpoint_address             = var.opensearch_endpoint_address
+      opensearch_template_primary_shard_count = tostring(var.opensearch_template_primary_shard_count)
+      aws_region                              = data.aws_region.current.name
+      minio_s3_bucket_name                    = var.minio_s3_bucket_name
+      private_network_load_balancer_dns       = var.private_network_load_balancer_dns
+      rabbitmq_node_port                      = tostring(var.rabbitmq_node_port)
+      rabbitmq_management_port                = tostring(var.rabbitmq_management_port)
+      oidc_information_issuer                 = var.oidc_information.issuer
+      oidc_information_client_id              = var.oidc_information.client_id
+      oidc_information_client_secret          = var.oidc_information.client_secret
+      oidc_information_redirect_uris          = jsonencode(jsonencode(var.oidc_information.redirect_uris))
+      opencti_openid_mapping_config_groups_token   = var.opencti_openid_mapping_config.groups_token
+      opencti_openid_mapping_config_groups_scope   = var.opencti_openid_mapping_config.groups_scope
+      opencti_openid_mapping_config_groups_path    = jsonencode(jsonencode(var.opencti_openid_mapping_config.groups_path))
+      opencti_openid_mapping_config_groups_mapping = jsonencode(jsonencode(var.opencti_openid_mapping_config.groups_mapping))
+      opencti_openid_mapping_config_roles_token    = var.opencti_openid_mapping_config.roles_token
+      opencti_openid_mapping_config_roles_scope    = var.opencti_openid_mapping_config.roles_scope
+      opencti_openid_mapping_config_roles_path     = jsonencode(jsonencode(var.opencti_openid_mapping_config.roles_path))
+      opencti_openid_mapping_config_roles_mapping  = jsonencode(jsonencode(var.opencti_openid_mapping_config.roles_mapping))
+  }))
+}
+
 ###################################
 # -- OpenCTI Platform Task Def -- #
 ###################################
@@ -69,88 +102,7 @@ resource "aws_ecs_task_definition" "opencti-platform" {
           "valueFrom" : "${var.elasticache_credentials_arn}:password::"
         }
       ],
-      "environment" : [
-        {
-          "name" : "APP__PORT",
-          "value" : "${tostring(var.opencti_platform_port)}"
-        },
-        {
-          "name" : "APP__ADMIN__EMAIL",
-          "value" : "${var.opencti_platform_admin_email}"
-        },
-        {
-          "name" : "NODE_OPTIONS",
-          "value" : "--max-old-space-size=${tostring(var.opencti_platform_memory_size)}"
-        },
-        {
-          "name" : "APP__APP_LOGS__LOGS_LEVEL",
-          "value" : "${var.opencti_logging_level}"
-        },
-        {
-          "name" : "REDIS__HOSTNAME",
-          "value" : "${var.elasticache_endpoint_address}"
-        },
-        {
-          "name" : "REDIS__PORT",
-          "value" : "${var.elasticache_redis_port}"
-        },
-        {
-          "name" : "REDIS__USE_SSL",
-          "value" : "true"
-        },
-        {
-          "name" : "REDIS__TRIMMING",
-          "value" : "${tostring(var.redis_trimming)}"
-        },
-        {
-          "name" : "ELASTICSEARCH__URL",
-          "value" : "https://${var.opensearch_endpoint_address}"
-        },
-        {
-          "name" : "ELASTICSEARCH__NUMBER_OF_SHARDS",
-          "value" : "${tostring(var.opensearch_template_primary_shard_count)}"
-        },
-        {
-          "name" : "MINIO__ENDPOINT",
-          "value" : "s3.${data.aws_region.current.name}.amazonaws.com"
-        },
-        {
-          "name" : "MINIO__PORT",
-          "value" : "443"
-        },
-        {
-          "name" : "MINIO__BUCKET_NAME",
-          "value" : "${var.minio_s3_bucket_name}"
-        },
-        {
-          "name" : "MINIO__BUCKET_REGION",
-          "value" : "${data.aws_region.current.name}"
-        },
-        {
-          "name" : "MINIO__USE_SSL",
-          "value" : "true"
-        },
-        {
-          "name" : "MINIO__USE_AWS_ROLE",
-          "value" : "true"
-        },
-        {
-          "name" : "RABBITMQ__HOSTNAME",
-          "value" : "${var.private_network_load_balancer_dns}"
-        },
-        {
-          "name" : "RABBITMQ__PORT",
-          "value" : "${tostring(var.rabbitmq_node_port)}"
-        },
-        {
-          "name" : "RABBITMQ__PORT_MANAGEMENT",
-          "value" : "${tostring(var.rabbitmq_management_port)}"
-        },
-        {
-          "name" : "RABBITMQ__USE_SSL",
-          "value" : "false"
-        }
-      ]
+      "environment" : local.environment_variables
   }])
   runtime_platform {
     operating_system_family = "LINUX"
@@ -158,72 +110,9 @@ resource "aws_ecs_task_definition" "opencti-platform" {
   }
 }
 
-# OpenID Connect configuration information. If OpenID Connect is used, these should be added to the above `environment` section of ECS OpenCTI Platform.
-# {
-#   "name" : "PROVIDERS__OPENID__STRATEGY",
-#   "value" : "OpenIDConnectStrategy"
-# },
-# {
-#   "name" : "PROVIDERS__OPENID__CONFIG__LABEL",
-#   "value" : "IdP Authentication"
-# },
-# {
-#   "name" : "PROVIDERS__OPENID__CONFIG__ISSUER",
-#   "value" : "${var.oidc_information.issuer}"
-# },
-# {
-#   "name" : "PROVIDERS__OPENID__CONFIG__CLIENT_ID",
-#   "value" : "${var.oidc_information.client_id}"
-# },
-# {
-#   "name" : "PROVIDERS__OPENID__CONFIG__CLIENT_SECRET",
-#   "value" : "${var.oidc_information.client_secret}"
-# },
-# {
-#   "name" : "PROVIDERS__OPENID__CONFIG__REDIRECT_URIS",
-#   "value" : "${var.oidc_information.redirect_uris}"
-# },
-# {
-#   "name" : "PROVIDERS__OPENID__CONFIG__ROLES_MANAGEMENT__TOKEN_REFERENCE",
-#   "value" : "${var.opencti_openid_mapping_config.chosen_token}"
-# },
-# {
-#   "name" : "PROVIDERS__OPENID__CONFIG__ROLES_MANAGEMENT__ROLES_SCOPE",
-#   "value" : "${var.opencti_openid_mapping_config.requested_scopes}"
-# },
-# {
-#   "name" : "PROVIDERS__OPENID__CONFIG__ROLES_MANAGEMENT__ROLES_MAPPING",
-#   "value" : "${var.opencti_openid_mapping_config.opencti_roles_mapping}"
-# },
-# {
-#   "name" : "PROVIDERS__OPENID__CONFIG__ROLES_MANAGEMENT__ROLES_PATH",
-#   "value" : "${var.opencti_openid_mapping_config.oidc_group_claim_path}"
-# },
-# {
-#   "name" : "PROVIDERS__OPENID__CONFIG__GROUPS_MANAGEMENT__TOKEN_REFERENCE",
-#   "value" : "${var.opencti_openid_mapping_config.chosen_token}"
-# },
-# {
-#   "name" : "PROVIDERS__OPENID__CONFIG__GROUPS_MANAGEMENT__GROUPS_SCOPE",
-#   "value" : "${var.opencti_openid_mapping_config.requested_scopes}"
-# },
-# {
-#   "name" : "PROVIDERS__OPENID__CONFIG__GROUPS_MANAGEMENT__GROUPS_MAPPING",
-#   "value" : "${var.opencti_openid_mapping_config.opencti_groups_mapping}"
-# },
-# {
-#   "name" : "PROVIDERS__OPENID__CONFIG__GROUPS_MANAGEMENT__GROUPS_PATH",
-#   "value" : "${var.opencti_openid_mapping_config.oidc_group_claim_path}"
-# },
-# {
-#   "name" : "PROVIDERS__LOCAL__STRATEGY",
-#   "value" : "LocalStrategy"
-# }
-
 resource "aws_cloudwatch_log_group" "this" {
   name              = "${var.resource_prefix}/ecs/opencti-platform"
   retention_in_days = var.log_retention
-  kms_key_id        = var.kms_key_arn
 }
 
 
@@ -231,10 +120,9 @@ resource "aws_cloudwatch_log_group" "this" {
 # -- OpenCTI Platform Master Password -- #
 ##########################################
 resource "aws_secretsmanager_secret" "master_password" {
-  name                    = "${var.resource_prefix}-infrastructure-opencti-master-user-credentials"
+  name                    = "${var.resource_prefix}-platform-opencti-master-user-credentials"
   description             = "Master User credentials for OpenCTI"
   recovery_window_in_days = var.secrets_manager_recovery_window
-  kms_key_id              = var.kms_key_arn
 }
 
 resource "random_password" "master_password" {
@@ -259,10 +147,9 @@ resource "aws_secretsmanager_secret_version" "master_password" {
 resource "random_uuid" "opencti_platform_uuidv4_token" {}
 
 resource "aws_secretsmanager_secret" "master_api_key" {
-  name                    = "${var.resource_prefix}-infrastructure-opencti-master-user-apikey"
+  name                    = "${var.resource_prefix}-platform-opencti-master-user-apikey"
   description             = "Master API Key for OpenCTI"
   recovery_window_in_days = var.secrets_manager_recovery_window
-  kms_key_id              = var.kms_key_arn
 }
 
 resource "random_password" "master_api_key" {
@@ -305,20 +192,11 @@ resource "aws_iam_policy" "opencti_platform_execution" {
       },
       {
         Action = [
-          "kms:Decrypt"
-        ]
-        Effect = "Allow"
-        Resource = [
-          "${var.kms_key_arn}"
-        ]
-      },
-      {
-        Action = [
           "secretsmanager:GetSecretValue",
         ]
         Effect = "Allow"
         Resource = [
-          "arn:aws:secretsmanager:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:secret:${var.resource_prefix}-infrastructure*",
+          "arn:aws:secretsmanager:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:secret:${var.resource_prefix}-platform*",
         ]
       }
     ]
@@ -372,14 +250,6 @@ resource "aws_iam_policy" "opencti_platform_task" {
           "${var.minio_s3_bucket_arn}",
           "${var.minio_s3_bucket_arn}/*"
         ]
-      },
-      {
-        Action = [
-          "kms:Decrypt",
-          "kms:GenerateDataKey"
-        ]
-        Effect   = "Allow"
-        Resource = ["${var.kms_key_arn}"]
       }
     ]
   })

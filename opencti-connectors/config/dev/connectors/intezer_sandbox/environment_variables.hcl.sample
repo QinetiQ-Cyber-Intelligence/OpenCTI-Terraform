@@ -1,0 +1,62 @@
+[
+    {
+      "name" : "OPENCTI_URL",
+      "value" : "${OPENCTI_PLATFORM_URL}"
+    },
+    {
+      "name" : "CONNECTOR_ID",
+      "value" : "${RANDOM_UUID}"
+    },
+    {
+      "name" : "CONNECTOR_TYPE",
+      "value" : "INTERNAL_ENRICHMENT"
+    },
+    {
+      "name" : "CONNECTOR_NAME",
+      "value" : "IntezerSandbox"
+    },
+    {
+      "name" : "CONNECTOR_SCOPE",
+      "value" : "Artifact"
+    },
+    {
+      "name" : "CONNECTOR_AUTO",
+      "value" : "false"
+    },
+    {
+      "name" : "CONNECTOR_CONFIDENCE_LEVEL",
+      "value" : "50"
+    },
+    {
+      "name" : "CONNECTOR_UPDATE_EXISTING_DATA",
+      "value" : "true"
+    },
+    {
+      "name" : "CONNECTOR_LOG_LEVEL",
+      "value" : "info"
+    },
+    {
+      "name" : "INTEZER_SANDBOX_FAMILY_COLOR",
+      "value" : "#0059f7"
+    },
+    {
+      "name" : "INTEZER_SANDBOX_MALICIOUS_COLOR",
+      "value" : "#d90e18"
+    },
+    {
+      "name" : "INTEZER_SANDBOX_TRUSTED_COLOR",
+      "value" : "#d90e18"
+    },
+    {
+      "name" : "INTEZER_SANDBOX_UNKNOWN_COLOR",
+      "value" : "#ffff00"
+    },
+    {
+      "name" : "INTEZER_SANDBOX_SUSPICIOUS_COLOR",
+      "value" : "#f79e00"
+    },
+    {
+      "name" : "INTEZER_SANDBOX_MAX_TLP",
+      "value" : "TLP:AMBER"
+    }
+]

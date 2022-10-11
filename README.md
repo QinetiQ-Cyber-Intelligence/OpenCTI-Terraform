@@ -8,15 +8,15 @@ A Terraform deployment of OpenCTI designed to make use of native AWS Resources (
 
 
 > **Note**
-> This deployment is designed to help with OpenCTI Platform adoption. QinetiQ does not offer warranty on usage of this deployment. It is highly recommended to understand AWS, Terraform and Docker and if used within a production environment, perform an analysis of the deployment's security. This includes ensuring in production, that the state file is securely stored in S3 with a restrictive Bucket Policy. If storing credentials in the Terraform state file (in a locked down S3 Bucket) does not meet policy requirements, look into Terraform Environment variables to pass manually stored credentials or use AWS Secrets Manager that can be referenced in Terraform.
+> This deployment is designed to help with OpenCTI Platform adoption. QinetiQ does not offer warranty on usage of this deployment. It is highly recommended to understand AWS, Terraform and Docker and if used within a production environment, perform an analysis of the deployment's security.
 
 ## Requirements
 This deployment requires
-- Terraform AWS Provider Version `>= 4.25.0`
+- Terraform AWS Provider Version `~> 4.29.0`
   - This is to make use of AWS EBS GP3 volumes, an important requirement to OpenCTI Platform performance.
-- Terraform Version `>= 1.1.0`
+- Terraform Version `>= 1.2.6`
 - OpenCTI Platform Version `>= 5.3.8`
-  - This deployment uses IAM Roles and AWS S3 Gateway Endpoint which requires the recent `aws-sdk` implementation that has been merged.
+  - This deployment uses IAM Roles and AWS S3 Gateway Endpoint which requires the recent `aws-sdk` implementation that has been merged. Hence, `ROLLING` can be used temporarily.
 
 
 ## Key Features
@@ -42,7 +42,7 @@ This Terraform deployment consists of two parts; deploying the core OpenCTI Plat
 Design decisions for each deployment are covered within the respective folder's `README`.
 
 ## OpenCTI URLs
-- [OpenCTI Website](https://www.filigran.io/en/products/opencti/)
+- [OpenCTI Page](https://www.opencti.io/)
 - [OpenCTI Demo](https://demo.opencti.io/)
 - [OpenCTI GitHub](https://github.com/OpenCTI-Platform/opencti)
 - [OpenCTI Slack](https://slack.luatix.org/)

@@ -1,0 +1,82 @@
+[
+    {
+      "name" : "OPENCTI_URL",
+      "value" : "${OPENCTI_PLATFORM_URL}"
+    },
+    {
+      "name" : "CONNECTOR_ID",
+      "value" : "${RANDOM_UUID}"
+    },
+    {
+      "name" : "CONNECTOR_TYPE",
+      "value" : "INTERNAL_ENRICHMENT"
+    },
+    {
+      "name" : "CONNECTOR_NAME",
+      "value" : "VirusTotal"
+    },
+    {
+      "name" : "CONNECTOR_SCOPE",
+      "value" : "StixFile,Artifact,IPv4-Addr,Domain-Name,Url"
+    },
+    {
+      "name" : "CONNECTOR_AUTO",
+      "value" : "true"
+    },
+    {
+      "name" : "CONNECTOR_UPDATE_EXISTING_DATA",
+      "value" : "true"
+    },
+    {
+      "name" : "CONNECTOR_LOG_LEVEL",
+      "value" : "info"
+    },
+    {
+      "name" : "CONNECTOR_CONFIDENCE_LEVEL",
+      "value" : "50"
+    },
+    {
+      "name" : "VIRUSTOTAL_MAX_TLP",
+      "value" : "TLP:RED"
+    },
+    {
+      "name" : "VIRUSTOTAL_FILE_CREATE_NOTE_FULL_REPORT",
+      "value" : "true"
+    },
+    {
+      "name" : "VIRUSTOTAL_FILE_INDICATOR_CREATE_POSITIVES",
+      "value" : "0"
+    },
+    {
+      "name" : "VIRUSTOTAL_FILE_INDICATOR_VALID_MINUTES",
+      "value" : "2880"
+    },
+    {
+      "name" : "VIRUSTOTAL_FILE_INDICATOR_DETECT",
+      "value" : "false"
+    },
+    {
+      "name" : "VIRUSTOTAL_IP_INDICATOR_CREATE_POSITIVES",
+      "value" : "0"
+    },
+    {
+      "name" : "VIRUSTOTAL_IP_INDICATOR_VALID_MINUTES",
+      "value" : "2880"
+    },
+    {
+      "name" : "VIRUSTOTAL_IP_INDICATOR_DETECT",
+      "value" : "false"
+    },
+    {
+      "name" : "VIRUSTOTAL_DOMAIN_INDICATOR_CREATE_POSITIVES",
+      "value" : "0"
+    },
+    {
+      "name" : "VIRUSTOTAL_DOMAIN_INDICATOR_VALID_MINUTES",
+      "value" : "2880"
+    },
+    {
+      "name" : "VIRUSTOTAL_DOMAIN_INDICATOR_DETECT",
+      "value" : "false"
+    }
+]

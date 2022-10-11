@@ -1,17 +1,30 @@
 variable "tags" {
-  type = object({
-    ProjectOwner = string
-    Customer     = string
-    Project      = string
-    Environment  = string
-    Terraform    = bool
-  })
-  description = "The set of tags required for AWS resources."
+  type = map
+  description = "The map of tags required for AWS resources."
 }
 
 variable "resource_prefix" {
   type        = string
   description = "Prefix for AWS Resources."
+}
+
+variable "environment" {
+  type        = string
+  description = "The name of the deployment environment, e.g. dev, prod."
+}
+
+###################################
+# --  OpenCTI Connector Other  -- #
+###################################
+
+variable "email_domain" {
+  type        = string
+  description = "The domain to use for the connector account email."
+}
+
+variable "opencti_url" {
+  type        = string
+  description = "The public Load Balancer endpoint for OpenCTI Platform or the URL."
 }
 
 ###################################
@@ -28,83 +41,12 @@ variable "opencti_platform_url" {
   description = "The internal Load Balancer endpoint for OpenCTI Platform."
 }
 
-variable "opencti_connector_kms_arn" {
-  type        = string
-  description = "The ARN value of the KMS Key used to encrypt Connector API Key Secrets."
-}
-
 variable "log_retention" {
   type        = string
   description = "The number of days that CloudWatch Logs are retained for."
 }
 
-variable "opencti_platform_port" {
+variable "secrets_manager_recovery_window" {
   type        = number
-  description = "The port that OpenCTI Platform will run on."
-}
-
-###################################
-# -- OpenCTI Connector OpenCTI -- #
-###################################
-
-variable "ex_imp_opencti_connector_name" {
-  type        = string
-  description = "The name given to the OpenCTI External Import connector."
-}
-
-variable "ex_imp_opencti_connector_image" {
-  type        = string
-  description = "The location on DockerHub of the OpenCTI External Import connector."
-}
-
-variable "ex_imp_opencti_cron_job" {
-  type = object({
-    start = string,
-    stop  = string
-  })
-  description = "The Cron Start and Cron Stop for AWS EventBridge."
-}
-
-#################################
-# -- OpenCTI Connector Mitre -- #
-#################################
-
-variable "ex_imp_mitre_connector_name" {
-  type        = string
-  description = "The name given to the Mitre External Import connector."
-}
-
-variable "ex_imp_mitre_connector_image" {
-  type        = string
-  description = "The location on DockerHub of the Mitre External Import connector."
-}
-
-variable "ex_imp_mitre_cron_job" {
-  type = object({
-    start = string,
-    stop  = string
-  })
-  description = "The Cron Start and Cron Stop for AWS EventBridge."
-}
-
-###############################
-# -- OpenCTI Connector CVE -- #
-###############################
-
-variable "ex_imp_cve_connector_name" {
-  type        = string
-  description = "The name given to the CVE External Import connector."
-}
-
-variable "ex_imp_cve_connector_image" {
-  type        = string
-  description = "The location on DockerHub of the CVE External Import connector."
-}
-
-variable "ex_imp_cve_cron_job" {
-  type = object({
-    start = string,
-    stop  = string
-  })
-  description = "The Cron Start and Cron Stop for AWS EventBridge."
+  description = "Specifies the number of days that AWS Secrets Manager waits before it can delete the secret. This value can be 0 to force deletion without recovery. The default value is 30."
 }

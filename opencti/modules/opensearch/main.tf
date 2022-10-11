@@ -49,7 +49,6 @@ resource "aws_opensearch_domain" "this" {
   }
   encrypt_at_rest {
     enabled    = true
-    kms_key_id = var.kms_key_arn
   }
   node_to_node_encryption {
     enabled = true
@@ -89,12 +88,10 @@ resource "aws_iam_service_linked_role" "this" {
 resource "aws_cloudwatch_log_group" "index_slow" {
   name              = "${var.resource_prefix}/opensearch/index-slow"
   retention_in_days = var.log_retention
-  kms_key_id        = var.kms_key_arn
 }
 resource "aws_cloudwatch_log_group" "search_slow" {
   name              = "${var.resource_prefix}/opensearch/search-slow"
   retention_in_days = var.log_retention
-  kms_key_id        = var.kms_key_arn
 }
 
 resource "aws_cloudwatch_log_resource_policy" "example" {
@@ -163,10 +160,9 @@ data "aws_iam_policy_document" "access_policy" {
 # -- OpenSearch Master User -- #
 ################################
 resource "aws_secretsmanager_secret" "this" {
-  name                    = "${var.resource_prefix}-infrastructure-opensearch-credentials"
+  name                    = "${var.resource_prefix}-platform-opensearch-credentials"
   description             = "Opensearch master credentials for OpenCTI"
   recovery_window_in_days = var.secrets_manager_recovery_window
-  kms_key_id              = var.kms_key_arn
 }
 
 resource "random_password" "opensearch_password" {

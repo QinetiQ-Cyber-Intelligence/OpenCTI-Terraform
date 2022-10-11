@@ -1,64 +1,42 @@
+# Default tags to apply to all deployed resources
 tags = {
-  ProjectOwner = "Undefined"
-  Customer     = "Undefined"
-  Project      = "OpenCTI"
-  Company      = "Undefined"
-  Environment  = "dev"
-  Terraform    = true
+  Company = "Example"
+  Department = "Example"
+  Environment = "dev"
+  Name = "OpenCTI"
+  Product = "OpenCTI"
 }
 # Must match that of the OpenCTI Core deployment
-resource_prefix = "tf-opencti"
-log_retention   = "1"
+resource_prefix = "CHANGEME"
+# Name of the environment, e.g. dev
+environment = "CHANGEME"
+# Amount of days to retain logs
+# Must be one of: 0 1 3 5 7 14 30 60 90 120 150 180 365 400 545 731 1827 3653
+log_retention   = "30"
+# Number of days that AWS Secrets Manager waits before it can delete the secret.
+# This value can be 0 to force deletion without recovery or range from 7 to 30 days.
+secrets_manager_recovery_window = 0
+
+############################
+# --       Other        -- #
+############################
+
+# This domain is used for connector account emails
+# In the form: {container_name}@{email_domain}
+# See `connectors.tf`.
+email_domain = "example.com"
+# This URL is used to call the OpenCTI API to create
+# connector accounts. If you didn't specify an environment/subdomain/domain
+# in the OpenCTI core deployment, use the public
+# load balancer url, otherwise use: https://{subdomain}.{environment}.{domain}
+opencti_url  = "https://opencti.dev.example.com"
 
 ############################
 # -- OpenCTI Deployment -- #
 ############################
 # -- OpenCTI -- #
-opencti_version           = "5.3.8"
-opencti_connector_kms_arn = "" # Use the outputted KMS information from the Core OpenCTI deployment.
-opencti_platform_url      = "" # Use the outputted Internal Load Balancer information from the Core OpenCTI deployment.
-opencti_platform_port     = 4000
-
-###################
-# -- IMPORTANT -- #
-###################
-# The Connector Name must match that, that is stored in the Core OpenCTI deployment otherwise the connector deployment will fail when attempting to reach AWS Secrets Manager.
-
-##################
-# -- Required -- #
-##################
-
-# -- OpenCTI Core Connectors -- #
-ex_imp_opencti_connector_image = "opencti/connector-opencti"
-ex_imp_opencti_connector_name  = "external-import-opencti"
-ex_imp_opencti_cron_job = {
-  start = "cron(0 6 1 * ? *)",
-  stop  = "cron(15 6 1 * ? *)"
-}
-ex_imp_mitre_connector_image = "opencti/connector-mitre"
-ex_imp_mitre_connector_name  = "external-import-mitre"
-ex_imp_mitre_cron_job = {
-  start = "cron(0 6 1 * ? *)",
-  stop  = "cron(15 6 1 * ? *)"
-}
-ex_imp_cve_connector_image = "opencti/connector-cve"
-ex_imp_cve_connector_name  = "external-import-cve"
-ex_imp_cve_cron_job = {
-  start = "cron(0 7 */2 * ? *)",
-  stop  = "cron(15 7 */2 * ? *)"
-}
-
-##################
-# -- Optional -- #
-##################
-
-# -- OpenCTI External Import Connectors -- #
-# Be aware that, its important to ensure the Core Connectors have been ingested before pulling further External Feeds.
-# Ensure that enough time is provisioned (~1-2 hours)
-
-
-# -- OpenCTI Internal Import Connectors -- #
-
-# -- OpenCTI Internal Export Connectors -- #
-
-# -- OpenCTI Internal Enrichment Connectors -- #
+opencti_version           = "5.3.15"
+# Use the outputted Internal Load Balancer information from the Core OpenCTI deployment.
+# For example:
+# http://resource-prefix-nlb-xxxxxxxxxxxxxxxx.elb.us-east-2.amazonaws.com:4000
+opencti_platform_url      = "CHANGEME"

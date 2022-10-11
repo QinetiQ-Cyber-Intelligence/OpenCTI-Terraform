@@ -16,11 +16,6 @@ variable "ecs_cluster" {
   description = "The ARN Value of the AWS ECS Cluster for OpenCTI."
 }
 
-variable "kms_key_arn" {
-  type        = string
-  description = "The ARN of the KMS Key used for encryption."
-}
-
 variable "opencti_platform_url" {
   type        = string
   description = "The Network Load Balancer endpoint used to access OpenCTI Platform."

@@ -45,11 +45,6 @@ variable "opencti_platform_url" {
   description = "The internal Load Balancer endpoint for OpenCTI Platform."
 }
 
-variable "opencti_connector_kms_arn" {
-  type        = string
-  description = "The ARN value of the KMS Key used to encrypt Connector API Key Secrets."
-}
-
 variable "container_name" {
   type        = string
   description = "The name given to the OpenCTI connector."
@@ -60,11 +55,20 @@ variable "opencti_connector_image" {
   description = "The location on DockerHub or other Docker repo of the OpenCTI connector."
 }
 
-variable "environment_variable_def" {
-  type = list(object({
-    name  = string
-    value = string
-  }))
+variable "environment_variable_template" {
+  type        = string
+  description = "The file path of the environment variable template."
+}
+
+variable "secrets_template" {
+  type        = string
+  description = "The file path of the secrets template."
+  default     = ""
+}
+
+variable "secrets_manager_recovery_window" {
+  type        = number
+  default     = 0
 }
 
 variable "log_retention" {
@@ -77,6 +81,15 @@ variable "halt_connector_lambda_arn" {
   description = "If the Connector is scheduled, the ARN value of the Lambda function to be used by AWS EventBridge."
 }
 
+variable "email_domain" {
+  type        = string
+  description = "The domain to use for OpenCTI account's email created for connector."
+}
+
+variable "opencti_url" {
+  type        = string
+  description = "The public facing endpoint for accessing the OpenCTI platform."
+}
 
 #####################
 # -- EventBridge -- #

@@ -8,6 +8,11 @@ output "public_application_load_balancer_dns" {
   description = "The publicly accessible URL of the Application Load Balancer."
 }
 
+output "subdomain_hosted_zone_name_servers" {
+  value       = aws_route53_zone.public_subdomain_zone[0].name_servers
+  description = "Name servers for the subdomain hosted zone, might be needed for master account if it manages the root domain"
+}
+
 output "rabbitmq_cluster_load_balancer_target_group_arn" {
   value       = aws_lb_target_group.rabbitmq_cluster.arn
   description = "The ARN of the Load Balancer Target Group routing traffic to RabbitMQ Cluster."

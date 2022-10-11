@@ -17,29 +17,43 @@ As OpenCTI Connectors **should** have dedicated User Accounts set up within Open
 ## Deployment Requirements
 
 > **Note**
-> - Review the `/config/dev/variables.tfvars` file for each deployment to ensure correct configuration.
+> - awscli
+> - terraform
+> - Review the `/config/{YOUR_ENVIRONMENT}/variables.tfvars` file for each deployment to ensure correct configuration.
 >   - To deploy this solution, the variable `resource_prefix` must be the same as that defined in the OpenCTI Platform deployment. In this example, it is set to `tf-opencti`.
->   - The `opencti_connector_kms_arn` and `opencti_platform_url` values in `variables.tfvars` must use the outputted values from the core OpenCTI deployment.
+>   - The `opencti_platform_url` variable in `variables.tfvars` must use the output value from the core OpenCTI deployment.
 > - Ensure that the `backend.conf` and `provider.tf` are both set to the correct AWS Region.
 
 #### Prerequisite Information
-Prior to deploying OpenCTI Connectors, you will need to make sure that all the required Secret Placeholders for API Tokens are created. The OpenCTI Platform deployment has a variable `opencti_connector_names` that contains a list of OpenCTI Connectors that have such a Secret placeholder created for them. 
+Prior to deploying OpenCTI Connectors, follow these steps:
 
-In the OpenCTI console, create a dedicated user account per connector with the correct permissions and within the corresponding AWS Secrets Manager Secret, store the API Key in the `apikey` field of the Secret.
+> **Note**
+> - It is recommended to set the `Connector` role as the default OpenCTI role for new accounts temporarily. In addition, 
+you will want to create a group with access to marking definitions and set it as default as well. This ensures that as you deploy the Connectors, each user account corresponding to each connector, will, by default, use the Connector role and be in the group, so it can have the permissions required to run.
 
-Connectors that are deployed in this Terraform deployment are then restricted through IAM Policies that only grant access to the Secret that is named with their `opencti_connector_name` value.
+#### Adding Additional Connectors
+
+Follow these steps to add additional connectors to OpenCTI:
+
+1. Update `opencti-connectors/connectors.tf` with a module block for your connector.
+2. Create a folder in `opencti-connectors/connectors` with the connector's template files.
+3. Deploy.
+
+> **Note**:
+> Secret template files, i.e. secrets.hcl should not be committed to source control.
+> Rather it is recommended to make use of secure credential storage through a pipeline or to deploy manually.
+> Sample secret template files can be found in `opencti-connectors/connectors/*/secrets.hcl.sample`.
 
 #### Deploying
-Within this Terraform deployment, the configurations for the external import `OpenCTI`, `Mitre` and `CVE` variables have been added. This is to enable you to progressively understand the process in place for deploying connectors.
 
-There are a minimum of 2 variables that are required for each connector deployment:
-- `connector_image` - the name and location of the Docker Image to be used
-- `connector_name`  - the general name assigned to that connector
-  - This follows the convention of `connector_type + connector_name` e.g. `external-import-opencti`
+To deploy, run the following commands:
+
+- `terraform init`
+- `terraform apply -auto-approve -var-file=./config/{YOUR_ENVIRONMENT}/variables.tfvars`
 
 If the Scheduled Connector template (AWS EventBridge w Lambda) is used, then the `cron_job` variable must also be defined. As it stands, the Cron Job is setup to use the UTC Time Zone and cannot be changed due to AWS limitations.
 
 > **Note**:
 > If a connector is scheduled (i.e. with a CronJob) then it should match the configuration of that Connector (i.e. how often a Connector should run)
 
-OpenCTI Connectors can be customised through environment variables. The OpenCTI Connector configuration data is stored within the `resources/container_env_definitions` folder. Note that these connector definitions do not include the `OPENCTI_TOKEN` value as this is passed through by AWS Secrets Manager.
+OpenCTI Connectors can be customised through environment variable and secret template files. See existing folders within `connectors` to learn more.

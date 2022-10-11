@@ -54,7 +54,6 @@ resource "aws_ecs_task_definition" "opencti_worker" {
 resource "aws_cloudwatch_log_group" "this" {
   name              = "${var.resource_prefix}/ecs/opencti-worker"
   retention_in_days = var.log_retention
-  kms_key_id        = var.kms_key_arn
 }
 
 
@@ -84,20 +83,11 @@ resource "aws_iam_policy" "opencti_worker_execution" {
       },
       {
         Action = [
-          "kms:Decrypt"
-        ]
-        Effect = "Allow"
-        Resource = [
-          "${var.kms_key_arn}"
-        ]
-      },
-      {
-        Action = [
           "secretsmanager:GetSecretValue",
         ]
         Effect = "Allow"
         Resource = [
-          "arn:aws:secretsmanager:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:secret:${var.resource_prefix}-infrastructure-opencti-master-user-apikey*",
+          "arn:aws:secretsmanager:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:secret:${var.resource_prefix}-platform-opencti-master-user-apikey*",
         ]
       }
     ]

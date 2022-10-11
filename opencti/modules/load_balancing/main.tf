@@ -24,12 +24,10 @@ resource "aws_security_group" "this" {
   vpc_id      = var.vpc_id
   ingress {
     description = "OpenCTI Platform Public Access"
-    from_port   = 80 # 443
-    to_port     = 80 # 443
+    from_port   = (var.domain == "") ? 80 : 443
+    to_port     = (var.domain == "") ? 80 : 443
     protocol    = "tcp"
-    cidr_blocks = [
-      "0.0.0.0/0"
-    ]
+    cidr_blocks = var.cidr_blocks_public_lb_ingress
   }
   egress {
     description = "Access to internet"
@@ -40,29 +38,94 @@ resource "aws_security_group" "this" {
   }
 }
 
-resource "aws_lb_listener" "this" {
+resource "aws_lb_listener" "lb_listener_http" {
+  count             = (var.domain == "") ? 1 : 0
   load_balancer_arn = aws_lb.application.arn
-  port              = "80"   # 443
-  protocol          = "HTTP" # HTTPS
-  # ssl_policy        = "ELBSecurityPolicy-TLS-1-2-2017-01"
-  # certificate_arn   = aws_acm_certificate_validation.this.certificate_arn
-  # default_action {
-  #   type = "authenticate-oidc"
-  #   authenticate_oidc {
-  #     authorization_endpoint     = var.oidc_information.authorization_endpoint
-  #     client_id                  = var.oidc_information.client_id
-  #     client_secret              = var.oidc_information.client_secret
-  #     issuer                     = var.oidc_information.issuer
-  #     token_endpoint             = var.oidc_information.token_endpoint
-  #     user_info_endpoint         = var.oidc_information.user_info_endpoint
-  #     on_unauthenticated_request = "authenticate"
-  #     scope                      = "openid profile email"
-  #     session_timeout            = 5400
-  #   }
-  # }
+  port              = "80"
+  protocol          = "HTTP"
+
+  # OIDC is not supported for non-HTTPS
+
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.this.arn
+  }
+}
+
+# Redirect HTTP to HTTPS
+resource "aws_lb_listener" "lb_listener_redirect" {
+  count             = (var.domain == "") ? 0 : 1
+  load_balancer_arn = aws_lb.application.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
+resource "aws_lb_listener" "lb_listener_https" {
+  count             = (var.domain == "") ? 0 : 1
+  load_balancer_arn = aws_lb.application.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = var.ssl_policy
+  certificate_arn   = aws_acm_certificate_validation.this[count.index].certificate_arn
+
+  # Check if authorized, if authenticate_oidc.on_authenticated_request
+  # is deny or authenticate and if the client id is set
+  dynamic "default_action" {
+    for_each = (var.oidc_information.client_id == "") ? [] : [var.oidc_information.client_id]
+    content {
+     type  = "authenticate-oidc"
+     order = 49999
+     authenticate_oidc {
+       authorization_endpoint     = var.oidc_information.authorization_endpoint
+       client_id                  = var.oidc_information.client_id
+       client_secret              = var.oidc_information.client_secret
+       issuer                     = var.oidc_information.issuer
+       token_endpoint             = var.oidc_information.token_endpoint
+       user_info_endpoint         = var.oidc_information.user_info_endpoint
+       scope                      = var.oidc_information.scope
+       session_timeout            = var.oidc_information.session_timeout
+       on_unauthenticated_request = var.oidc_information.on_unauthenticated_request
+     }
+    }
+  }
+
+  default_action {
+    type             = "forward"
+    order            = 50000
+    target_group_arn = aws_lb_target_group.this.arn
+  }
+}
+
+
+# Generate rules depending on the amount of needed
+# IP addresses to bypass OIDC;AWS only allows 5 per rule
+locals {
+  chunked_whitelisted_ips = {for idx, val in chunklist(var.cidr_blocks_bypass_auth, 5): idx => val}
+}
+resource "aws_lb_listener_rule" "lb_listener_https_rule" {
+  # Create rules for the listener, 5 whitelisted IPs per rule
+  # These are placed higher priority than the default rules
+  for_each     = (var.domain == "" || var.oidc_information.client_id == "") ? {} : local.chunked_whitelisted_ips
+  listener_arn = aws_lb_listener.lb_listener_https[0].arn
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.this.arn
+  }
+
+  condition {
+    source_ip {
+      values = each.value
+    }
   }
 }
 
@@ -88,46 +151,51 @@ resource "aws_lb_target_group" "this" {
 ##########################
 # -- SSL & R53 Config -- #
 ##########################
-# data "aws_route53_zone" "public" {
-#   name         = var.domain
-#   private_zone = false
-# }
+resource "aws_route53_zone" "public_subdomain_zone" {
+  count   = (var.domain == "") ? 0 : 1
+  name    = "${var.environment}.${var.domain}"
+}
 
-# # Create a R53 record for the Application Load Balancer
-# resource "aws_route53_record" "alb_record" {
-#   zone_id = data.aws_route53_zone.public.zone_id
-#   name    = "opencti.${data.aws_route53_zone.public.name}"
-#   type    = "A"
-#   alias {
-#     name                   = aws_lb.application.dns_name
-#     zone_id                = aws_lb.application.zone_id
-#     evaluate_target_health = false
-#   }
-# }
+# # Create an A record from the subdomain to the Application Load Balancer
+resource "aws_route53_record" "alb_record" {
+  count   = (var.domain == "") ? 0 : 1
+  zone_id = aws_route53_zone.public_subdomain_zone[count.index].zone_id
+  name    = "${var.subdomain}.${aws_route53_zone.public_subdomain_zone[count.index].name}"
+  type    = "A"
+  alias {
+    name                   = aws_lb.application.dns_name
+    zone_id                = aws_lb.application.zone_id
+    evaluate_target_health = false
+  }
+}
 
 # # SSL certificate for ALB
-# resource "aws_acm_certificate" "alb_ssl" {
-#   domain_name       = aws_route53_record.alb_record.fqdn
-#   validation_method = "DNS"
-#   lifecycle {
-#     create_before_destroy = true
-#   }
-# }
+resource "aws_acm_certificate" "alb_ssl" {
+  count             = (var.domain == "") ? 0 : 1
+  domain_name       = aws_route53_record.alb_record[count.index].fqdn
+  validation_method = "DNS"
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 # # Verifying DNS ownership for the ACM certificate
-# resource "aws_route53_record" "cert_validation" {
-#   allow_overwrite = true
-#   name            = tolist(aws_acm_certificate.alb_ssl.domain_validation_options)[0].resource_record_name
-#   records         = [tolist(aws_acm_certificate.alb_ssl.domain_validation_options)[0].resource_record_value]
-#   type            = tolist(aws_acm_certificate.alb_ssl.domain_validation_options)[0].resource_record_type
-#   zone_id         = data.aws_route53_zone.public.id
-#   ttl             = 60
-# }
+resource "aws_route53_record" "cert_validation" {
+  count           = (var.domain == "") ? 0 : 1
+  allow_overwrite = true
+  name            = tolist(aws_acm_certificate.alb_ssl[count.index].domain_validation_options)[0].resource_record_name
+  records         = [tolist(aws_acm_certificate.alb_ssl[count.index].domain_validation_options)[0].resource_record_value]
+  type            = tolist(aws_acm_certificate.alb_ssl[count.index].domain_validation_options)[0].resource_record_type
+  zone_id         = aws_route53_zone.public_subdomain_zone[count.index].id
+  ttl             = 60
+}
 
 # # Informing Terraform to await ACM Cert validation before progressing 
-# resource "aws_acm_certificate_validation" "this" {
-#   certificate_arn         = aws_acm_certificate.alb_ssl.arn
-#   validation_record_fqdns = [aws_route53_record.cert_validation.fqdn]
-# }
+resource "aws_acm_certificate_validation" "this" {
+  count                   = (var.domain == "") ? 0 : 1
+  certificate_arn         = aws_acm_certificate.alb_ssl[count.index].arn
+  validation_record_fqdns = [aws_route53_record.cert_validation[count.index].fqdn]
+}
 
 ################################
 # --    Internal NLB for    -- #

@@ -11,11 +11,6 @@ variable "vpc_id" {
   description = "The VPC ID to deploy OpenCTI Platform into."
 }
 
-variable "kms_key_arn" {
-  type        = string
-  description = "The ARN of the KMS Key used for encryption."
-}
-
 variable "private_cidr_blocks" {
   type        = list(string)
   description = "List of the private CIDR blocks."
@@ -126,13 +121,16 @@ variable "opencti_logging_level" {
 
 variable "oidc_information" {
   type = object({
-    client_id              = string,
-    client_secret          = string,
-    issuer                 = string,
-    authorization_endpoint = string,
-    token_endpoint         = string,
-    user_info_endpoint     = string,
-    redirect_uris          = string
+    client_id              = string
+    client_secret          = string
+    issuer                 = string
+    authorization_endpoint = string
+    token_endpoint         = string
+    user_info_endpoint     = string
+    redirect_uris          = list(string)
+    session_timeout        = number
+    scope                  = string
+    on_unauthenticated_request = string
   })
   description = "The OIDC Authentication information used by OpenCTI Platform and the ALB."
   sensitive   = true
@@ -140,14 +138,18 @@ variable "oidc_information" {
 
 variable "opencti_openid_mapping_config" {
   type = object({
-    chosen_token           = string
-    oidc_group_claim_path  = string,
-    requested_scopes       = string
-    opencti_roles_mapping  = string,
-    opencti_groups_mapping = string,
+    groups_token   = string,
+    groups_scope   = string,
+    groups_path    = list(string),
+    groups_mapping = list(string),
+    roles_token    = string,
+    roles_scope    = string,
+    roles_path     = list(string),
+    roles_mapping  = list(string)
   })
   description = "The RBAC mapping information for OpenCTI Platform to use."
 }
+
 # -- OpenSearch -- #
 variable "opensearch_endpoint_address" {
   type        = string
