@@ -40,7 +40,7 @@ aws s3api put-bucket-encryption --bucket my-bucket-dev --region --us-east-1 serv
 aws s3api put-bucket-versioning --bucket my-bucket-dev --region us-east-1 --versioning-configuration Status=Enabled
 ```
 5. Configure `OpenCTI-Terraform/opencti/config/backend.conf` and `OpenCTI-Terraform/opencti-connectors/config/backend.conf` with the bucket name.
-6. Un-comment the `backend` blocks in `OpenCTI-Terraform/opencti/versions.tf` and `OpenCTI-Terraform/opencti-connectors/versions.tf`.
+6. Un-comment the `backend` blocks in `opencti/versions.tf` and `opencti-connectors/versions.tf`.
 7. Run the following command:
 ```
 terraform init --backend-config=./config/{YOUR_ENVIRONMENT}/backend.conf
