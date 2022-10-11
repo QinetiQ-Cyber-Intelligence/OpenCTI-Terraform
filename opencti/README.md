@@ -57,7 +57,7 @@ terraform apply -var-file=./config/{YOUR_ENVIRONMENT}/variables.tfvars
 ```
 
 ### Route 53 Integration
-Terraform code exists within this deployment (`load_balancing module`) that will make use of an existing Route53 Hosted Zone. The Route53 Hosted Zone value is configured by the variables: `domain`, `environment`, and `subdomain` in `variables.tfvars`. The OpenCTI platform will be available at `https://subdomain.environment.domain`.
+Terraform code exists within this deployment (`load_balancing module`) to create a Route53 Hosted Zone. The Route53 Hosted Zone name is configured by the variables: `domain`, `environment`, and `subdomain` in `variables.tfvars`. The OpenCTI platform will be available at `https://subdomain.environment.domain`.
 
 ### OpenID Connect Integration
 
