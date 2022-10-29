@@ -13,7 +13,7 @@ log_retention                   = 1
 # Update `aws_account_id_lb_logs` to relevant AWS Account ID
 # https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-access-logs.html#access-logging-bucket-permissions:~:text=id/*%22%0A%20%20%20%20%7D%0A%20%20%5D%0A%7D-,The,-following%20table%20contains
 aws_account_id_lb_logs = "127311923021"
-opencti_kms_key_admin  = "*" # Recommended to restrict this to a specific IAM Entity
+opencti_kms_key_admin  = "" # Restrict to a specific IAM Entity
 enable_ecs_exec        = true
 
 ####################################

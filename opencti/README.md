@@ -11,18 +11,23 @@ A deployment of the OpenCTI Platform and its main dependencies into AWS across 3
 > **Note**
 > Review the `/config/dev/variables.tfvars` file for each deployment to ensure the OpenCTI Platform is configured as expected. This includes setting the correct regional values such as the `aws_account_id_lb_logs` defined on `Line 15` in `variables.tfvars`. Ensure that the `backend.conf` and `provider.tf` are both set to the correct AWS Region.
 
+> **Update the 'opencti_kms_key_admin' variable to a trusted IAM Entity. The deployment will fail if not defined**. If a deployment is being used for testing purposes it may be acceptable to set this to a wildcard. In production, restrict this to one IAM User/Role or group.
+
 ## Guidance
+
 This deployment, as it stands, will deploy the core OpenCTI Platform but there are additional components that can be added.
 
 > **Note**
+>
 > - AWS Lambda is deployed as a private resource in a VPC. This can lead to longer resource delete times (~27mins). This is expected.
 > - The OpenCTI Platform master user credentials can be found in AWS Secrets Manager post deployment.
 
-
 ### Route 53 Integration
+
 Terraform code exists within this deployment (`load_balancing module`) that will make use of an existing Route53 Hosted Zone. The Route53 Hosted Zone value is configured by the `domain` Terraform variable in `variables.tfvars`. This will create a sub-domain of `https://opencti.domain`.
 
 To enable this Terraform code, the following adjustments need to be made:
+
 - In the `load_balancing` module, lines `47 - 48` are to be uncommented and lines `27 - 28 and 45 - 46` should be adjusted to the suggested values.
 - Lines `91 - 130` should be uncommented.
 
@@ -33,6 +38,7 @@ OpenID Connect has been setup to authenticate inbound users on the public Applic
 This requires having an Identity Provider Application setup prior to testing this code.
 
 To enable this, the following adjustments need to be made:
+
 - Configuration of the variables `opencti_openid_mapping_config` and `oidc_information`.
 - Lines `49 - 62` of the `load_balancing` module should be uncommented.
 - Lines `162 - 221` of the `ecs_opencti/opencti_platform` module should be uncommented and moved into the `environment` section of the ECS Task Definition.
@@ -40,6 +46,7 @@ To enable this, the following adjustments need to be made:
 In the case of setting up OpenID Connect, OpenCTI documentation can be found [here](https://luatix.notion.site/Configuration-a568604c46d84f39a8beae141505572a#896e296f1efb46a985048914fbe29e45).
 
 It is worth noting:
+
 - OpenCTI Platform can authorize a user either through the ID Token or Access Token.
 - OpenCTI offers two authorization capabilities, OpenCTI Groups (TLP Levels) and OpenCTI Roles.
   - OpenCTI Roles are configured by `ROLES_MANAGEMENT` and OpenCTI Groups by `GROUPS_MANAGEMENT`.
@@ -48,7 +55,6 @@ It is worth noting:
     - `PATH` represents where the information in the ID or Access Token can be found when performing mappings.
     - `MAPPING` represents an escaped list that will map an OpenID Connect attribute to OpenCTI Groups/Roles.
 - When identifying the `PATH` value, setting the OpenCTI Platform to `debug` mode can help.
-
 
 ### ElastiCache Redis Trimming
 
@@ -62,7 +68,6 @@ When authenticated to Redis, the following commands can help to remove redundant
 > XTRIM stream.opencti MAXLEN 200000 # Or lower than 200000
 ```
 
-
 ### AWS SES SMTP
 
 OpenCTI offers a subscription solution to send out emails based on events within OpenCTI. This has not been configured in this deployment as it requires a set of AWS SES SMTP credentials to be setup using an IAM User and verifying identities within AWS SES.
@@ -70,7 +75,6 @@ OpenCTI offers a subscription solution to send out emails based on events within
 Once these configuration steps have been completed, setting up SMTP is straightforward. Following best practices, creating a Secret in Secrets Manager to house the credentials and then pulling this information in the ECS Fargate Task definition from Secrets is recommended.
 
 The required environment variables can be found within OpenCTI [documentation](https://luatix.notion.site/Configuration-a568604c46d84f39a8beae141505572a#896e296f1efb46a985048914fbe29e45).
-
 
 ### OpenCTI Platform Autoscaling
 
@@ -107,7 +111,6 @@ In this deployment, AWS OpenSearch is chosen as it provides a simplified approac
 > AWS have recently released support for AWS EBS GP3 volumes which provide a much higher baseline of 3000 IOPs compared to the previous GP2 version of 3 IOPs per GB. This will help to resolve performance issues.
 > If issues are still encountered, scaling the AWS OpenSearch data nodes up (to accommodate the expected increase in searches/indexing) can significantly help.
 > More details can be found [here](https://aws.amazon.com/premiumsupport/knowledge-center/opensearch-indexing-performance/) and [here](https://www.elastic.co/guide/en/elasticsearch/reference/master/tune-for-indexing-speed.html).
-
 
 > OpenCTI makes use of an `index pattern` that can be configured through environment variables. These are not documented fully but a list can be found at the following [link](https://github.com/OpenCTI-Platform/opencti/blob/e2078dc6b74a1c4250301c9d50944e06c8e11091/opencti-platform/opencti-graphql/src/database/engine.js#L76).
 > This enables optimisation of the `opencti template` such as reducing the number of shards per index.
