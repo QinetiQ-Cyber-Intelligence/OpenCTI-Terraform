@@ -8,7 +8,7 @@ resource "aws_elasticache_replication_group" "this" {
   multi_az_enabled           = true
   automatic_failover_enabled = true
 
-  num_node_groups         = 1
+  num_node_groups         = var.elasticache_node_groups_count
   replicas_per_node_group = var.elasticache_replication_count
 
   node_type                  = var.elasticache_instance_type
@@ -17,7 +17,7 @@ resource "aws_elasticache_replication_group" "this" {
   subnet_group_name          = aws_elasticache_subnet_group.this.name
   engine                     = "redis"
   engine_version             = var.elasticache_redis_version
-  parameter_group_name       = "default.redis6.x"
+  parameter_group_name       = var.elasticache_parameter_group_name
   maintenance_window         = var.elasticache_redis_maintenance_period
   auto_minor_version_upgrade = true
   apply_immediately          = true

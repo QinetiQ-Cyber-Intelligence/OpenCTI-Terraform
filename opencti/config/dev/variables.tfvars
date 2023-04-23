@@ -64,12 +64,18 @@ opensearch_auto_tune = {
 #####################
 # -- Elasticache -- #
 #####################
-elasticache_instance_type                  = "cache.t4g.small"
-elasticache_replication_count              = 1
-elasticache_redis_version                  = "6.2"
+# Configurtion for Elasticache Redis cluster (cluster mode enabled)
+elasticache_instance_type                  = "cache.m6g.large"
+# Number of node groups (shards)
+elasticache_node_groups_count              = 2
+# Number of replicas per node group (shard)
+elasticache_replication_count              = 2
+elasticache_redis_version                  = "7.0"
+elasticache_parameter_group_name           = "default.redis7.cluster.on"
 elasticache_redis_port                     = "6379"
 elasticache_redis_snapshot_retention_limit = 1
-elasticache_redis_snapshot_time            = "18:00-20:00"
+# Time is in UTC, adjust accordingly
+elasticache_redis_snapshot_time            = "10:00-12:00"
 elasticache_redis_maintenance_period       = "sun:21:00-sun:23:00"
 redis_trimming                             = 200000 # Based off analysis
 
@@ -104,7 +110,7 @@ network_load_balancer_ips = [
 ############################
 
 # -- OpenCTI -- #
-opencti_version                      = "5.3.8"
+opencti_version                      = "5.7.2" # or 5.7.2 or greater
 public_opencti_access_logs_s3_prefix = "opencti-access-logs"
 # -- OpenCTI Platform -- #
 opencti_platform_port                  = 4000

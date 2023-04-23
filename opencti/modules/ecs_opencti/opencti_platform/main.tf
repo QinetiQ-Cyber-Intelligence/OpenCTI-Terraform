@@ -88,7 +88,11 @@ resource "aws_ecs_task_definition" "opencti-platform" {
         },
         {
           "name" : "REDIS__HOSTNAME",
-          "value" : "${var.elasticache_endpoint_address}"
+          "value" : "${split(":", var.elasticache_endpoint_address)[0]}"
+        },
+        {
+          "name" : "REDIS__HOSTNAMES",
+          "value" : "[\"${var.elasticache_endpoint_address}\"]"
         },
         {
           "name" : "REDIS__PORT",
@@ -97,6 +101,14 @@ resource "aws_ecs_task_definition" "opencti-platform" {
         {
           "name" : "REDIS__USE_SSL",
           "value" : "true"
+        },
+        {
+          "name" : "REDIS__MODE",
+          "value" : "cluster"
+        },
+        {
+          "name" : "REDIS__CA",
+          "value" : "[\"/etc/ssl/certs/ca-certificates.crt\"]"
         },
         {
           "name" : "REDIS__TRIMMING",
