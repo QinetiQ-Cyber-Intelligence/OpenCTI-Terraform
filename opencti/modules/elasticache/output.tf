@@ -1,6 +1,6 @@
 output "elasticache_endpoint_address" {
-  value       = aws_elasticache_replication_group.this.primary_endpoint_address
-  description = "The Endpoint address for Elasticache redis for Read and Write Ops."
+  value       = aws_elasticache_replication_group.this.configuration_endpoint_address
+  description = "The configuration endpoint address for Elasticache Redis."
 }
 
 output "elasticache_credentials_arn" {
